@@ -21,7 +21,7 @@
 #################################################
 # Edit the following to match your sources lists
 #################################################
-
+VERSION=0.1.0
 PLUGINNAME = GpuDataChecker
 
 PY_FILES = \
