@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/plugins/gpudatachecker" >
+     <file>img/gpu_icon.png</file>
+  </qresource>
+</RCC>

@@ -1,0 +1,14 @@
+[general]
+name=GpuDataChecker
+email=paul-emmanuel.gautreau@ign.fr
+author=Paul-Emmanuel Gautreau
+qgisMinimumVersion=3.4
+description=Plugin pour l'aide au contrôle de la validité
+    géométrique de données pour intégration dans le géoportail 
+    de l'urbanisme
+about=Plugin pour l'aide au contrôle de la validité
+    géométrique de données pour intégration dans le géoportail 
+    de l'urbanisme
+version=version 0.1.0
+tracker=http://bugs.itopen.it
+repository=http://www.itopen.it/repo
