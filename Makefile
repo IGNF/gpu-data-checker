@@ -22,7 +22,7 @@
 # Edit the following to match your sources lists
 #################################################
 VERSION=0.1.0
-PLUGINNAME = GpuDataChecker
+PLUGINNAME = gpu-data-checker
 
 PY_FILES = \
 	gpuDataChecker.py \
@@ -72,6 +72,7 @@ dclean:
 	@echo "-----------------------------------"
 	find $(QGISDIR)/python/plugins/$(PLUGINNAME) -iname "*.pyc" -delete
 	find $(QGISDIR)/python/plugins/$(PLUGINNAME) -iname ".git" -prune -exec rm -Rf {} \;
+	rm -rf __pycache__
 
 
 derase:

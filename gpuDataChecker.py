@@ -14,8 +14,9 @@ from qgis.core import (
     QgsMemoryProviderUtils,  # type: ignore
     QgsField,  # type: ignore
     QgsFields,  # type: ignore
+    QgsProcessingFeedback, # type: ignore
 )
-from qgis.gui import QgsErrorDialog  # type: ignore
+from qgis.gui import QgsErrorDialog, QgsProjectionSelectionDialog  # type: ignore
 
 import processing  # type: ignore
 
@@ -65,6 +66,19 @@ class GpuDataChecker:
             return
         layerResultName = currentLayer.name() + "_4326"
         try:
+            feedback = QgsProcessingFeedback()
+            feedback.pushInfo(str(currentLayer.crs().toWkt()))
+            crs = currentLayer.crs() if QMessageBox.question(
+                None,
+                "Projection de la couche",
+                "La projection définie pour cette couche est "+currentLayer.crs().authid()+". Confirmer ?",
+                QMessageBox.Yes | QMessageBox.No
+            ) == QMessageBox.Yes else None
+            if not crs:
+                dialog = QgsProjectionSelectionDialog()
+                dialog.exec_()
+                crs = dialog.crs()
+                currentLayer.setCrs(crs)
             result = processing.run(
                 "native:reprojectlayer",
                 {
@@ -99,17 +113,12 @@ class GpuDataChecker:
             return
 
         # Get layer type (zonage/secteur or not)
-        zonageOrSecteur = (
-            True
-            if QMessageBox.question(
-                QWidget(),
+        zonageOrSecteur = True if QMessageBox.question(
+                None,
                 "Type de couche",
                 "La couche à tester est-elle un zonage ou un secteur ?",
-                QMessageBox.Yes,
-                QMessageBox.No,
-            )
-            else False
-        )
+                QMessageBox.Yes | QMessageBox.No
+            ) == QMessageBox.Yes else False
 
         # Create result layer
         errorTableFields = QgsFields()
@@ -124,20 +133,29 @@ class GpuDataChecker:
             1,  # geometry type : Point
             crs,
         )
-
-        featureCount = currentLayer.featureCount()*2
+        fbck = QgsProcessingFeedback()
+        fbck.pushInfo(str(zonageOrSecteur))
+        progressCount = currentLayer.featureCount()*3 if zonageOrSecteur else currentLayer.featureCount()*2
         progressMessageBar = self.iface.messageBar().createMessage("Check GPU validity layer...")
         progress = QProgressBar()
-        progress.setMaximum(featureCount)
+        progress.setMaximum(progressCount)
         progress.setAlignment(Qt.AlignVCenter)
         progressMessageBar.layout().addWidget(progress)
         self.iface.messageBar().pushWidget(progressMessageBar, Qgis.Info)
         progress.setValue(0)
+
         # check geos validity
         self.checkOgcValidity(currentLayer, progress)
 
         # check complexity
         self.checkComplexity(currentLayer, progress)
+        if zonageOrSecteur:
+            # check duplicates
+            self.checkDuplicates(currentLayer, progress)
+            
+            # check boundary
+            self.checkBoundary(currentLayer, progress)
+
 
         # Add result layer to map
         QgsProject.instance().addMapLayer(self.errorLayer)
@@ -230,6 +248,39 @@ class GpuDataChecker:
                     self.errorLayer.addFeature(errorFeature)
 
             featuresIterator.nextFeature(feature)
+        self.errorLayer.commitChanges()
+
+    def checkDuplicates(self, layer, progress):
+        feedback = QgsProcessingFeedback()
+        featuresIterator = layer.getFeatures()
+        feature = QgsFeature()
+        featuresIterator.nextFeature(feature)
+        self.errorLayer.startEditing()
+        seenGeometries = []
+        while not featuresIterator.isClosed():
+            # Update progression
+            progress.setValue(progress.value()+1)
+            # check duplicate
+            featureValid = feature.geometry().isGeosValid()
+            for geometry in seenGeometries:
+                isDuplicate = feature.geometry().isGeosEqual(geometry) if featureValid else feature.geometry().equals(geometry)
+                if isDuplicate:
+                    # create error feature
+                    errorFeature = QgsFeature(self.errorLayer.fields())
+                    errorFeature["fid"] = feature["gid"]
+                    errorFeature["level"] = "ERROR"
+                    errorFeature["type"] = "duplicate"
+                    errorFeature["message"] = "Géométrie dupliquée"
+                    errorFeature.setGeometry(feature.geometry().centroid())
+                    # add to error layer
+                    self.errorLayer.addFeature(errorFeature)
+                    break
+            seenGeometries.append(feature.geometry())
+            featuresIterator.nextFeature(feature)
+        self.errorLayer.commitChanges()
+
+    def checkBoundary(self, layer, progress):
+        self.errorLayer.startEditing()
         self.errorLayer.commitChanges()
 
     def countVertices(self, geometry):
