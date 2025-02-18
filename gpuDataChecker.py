@@ -117,8 +117,8 @@ class GpuDataChecker:
                 None,
                 "Type de couche",
                 "La couche à tester est-elle un zonage ou un secteur ?",
-                QMessageBox.Yes | QMessageBox.No
-            ) == QMessageBox.Yes else False
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            ) == QMessageBox.StandardButton.Yes else False
 
         # Create result layer
         errorTableFields = QgsFields()
