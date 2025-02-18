@@ -9,7 +9,7 @@ description=Plugin pour l'aide au contrôle de la validité
 about=Plugin pour l'aide au contrôle de la validité
     géométrique de données pour intégration dans le géoportail 
     de l'urbanisme
-version=version 0.1.0
+version=version 0.1.1
 tracker=https://github.com/IGNF/gpu-data-checker/issues
 repository=https://github.com/IGNF/gpu-data-checker
 homepage=https://github.com/IGNF/gpu-data-checker
