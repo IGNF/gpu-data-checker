@@ -13,3 +13,5 @@ version=version 0.1.1
 tracker=https://github.com/IGNF/gpu-data-checker/issues
 repository=https://github.com/IGNF/gpu-data-checker
 homepage=https://github.com/IGNF/gpu-data-checker
+
+changelog=0.1.1 : Ajout de vérification des doublons de complexité ; correction de bugs et ajout d'une boite de dialogue en fin de traitement (merci à F. Thévand francois.thevand@gmail.com).

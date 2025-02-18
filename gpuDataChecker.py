@@ -15,6 +15,7 @@ from qgis.core import (
     QgsField,  # type: ignore
     QgsFields,  # type: ignore
     QgsProcessingFeedback, # type: ignore
+    QgsWkbTypes  # type: ignore
 )
 from qgis.gui import QgsErrorDialog, QgsProjectionSelectionDialog  # type: ignore
 
@@ -130,7 +131,7 @@ class GpuDataChecker:
         self.errorLayer = QgsMemoryProviderUtils.createMemoryLayer(
             currentLayer.name() + "_error",
             errorTableFields,
-            1,  # geometry type : Point
+            QgsWkbTypes.Point,  # geometry type : Point
             crs,
         )
         fbck = QgsProcessingFeedback()
@@ -157,8 +158,12 @@ class GpuDataChecker:
             self.checkBoundary(currentLayer, progress)
 
 
-        # Add result layer to map
-        QgsProject.instance().addMapLayer(self.errorLayer)
+        # Vérifier si la couche contient des entités
+        if self.errorLayer.featureCount() > 0:
+            # Add result layer to map
+            QgsProject.instance().addMapLayer(self.errorLayer)
+        else:
+            QMessageBox.information(None, "Validation terminée", "Aucune erreur détectée. La couche ne sera pas ajoutée.")
 
         self.iface.messageBar().clearWidgets()
 
