@@ -28,7 +28,10 @@ PY_FILES = \
 	gpuDataChecker.py \
 	__init__.py
 
-EXTRAS = metadata.txt
+EXTRAS = metadata.txt \
+	LICENSE \
+	README.md \
+	resources.qrc
 
 COMPILED_RESOURCE_FILES = resources.py
 
@@ -72,7 +75,7 @@ dclean:
 	@echo "-----------------------------------"
 	find $(QGISDIR)/python/plugins/$(PLUGINNAME) -iname "*.pyc" -delete
 	find $(QGISDIR)/python/plugins/$(PLUGINNAME) -iname ".git" -prune -exec rm -Rf {} \;
-	rm -rf __pycache__
+	rm -rf $(QGISDIR)/python/plugins/$(PLUGINNAME)/__pycache__
 
 
 derase:
